@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ ci-dev ]
+    branches: [ dev ]
 
 permissions:
   packages: write
