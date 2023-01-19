@@ -13,6 +13,8 @@ jobs:
     name: Docker build and upload
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
