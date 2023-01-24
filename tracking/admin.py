@@ -34,5 +34,5 @@ class TrackingAdmin(admin.ModelAdmin):
 
 @admin.register(TrackingDetail)
 class TrackingDetailAdmin(admin.ModelAdmin):
-    list_display = ('detail_head', 'detail_text', 'creation_time')
+    list_display = ('detail_head', 'detail_text', 'audit_time')
     list_filter = ('id_tracking_fk', 'detail_head')

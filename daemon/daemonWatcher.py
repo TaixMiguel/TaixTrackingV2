@@ -3,6 +3,7 @@ import threading
 import time
 
 from TaixTracking.configApp import ConfigApp
+from daemon.tracker import get_instance_tracker, AbstractTracker
 
 
 def _delete_inactive_users(num_days: int) -> None:
@@ -14,6 +15,21 @@ def _delete_inactive_users(num_days: int) -> None:
     if users_to_remove:
         logging.info(f'{len(users_to_remove)} usuarios a eliminar a fecha {aux_date.strftime("%m/%d/%y")}')
         users_to_remove.delete()
+
+
+def _get_active_tracking() -> list:
+    from tracking.models import User, Tracking
+    active_users = User.objects.filter(sw_allow=True)
+    return Tracking.objects.filter(id_creator_user_fK__in=active_users)
+
+
+def _search_new_tracks_detail() -> None:
+    tracks = _get_active_tracking()
+    for track in tracks:
+        tracker: AbstractTracker = get_instance_tracker(track)
+        tracker.search_last_detail()
+        if tracker.is_new_detail():
+            tracker.add_new_detail()
 
 
 class DaemonWatcher:
@@ -36,6 +52,7 @@ class DaemonWatcher:
         _delete_inactive_users(ConfigApp().get_number_days_to_delete_user_inactive())
 
         while not self.turnOff:
+            _search_new_tracks_detail()
             time.sleep(self.timeSleep)
 
     def turn_off(self) -> None:
