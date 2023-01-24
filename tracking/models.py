@@ -29,6 +29,9 @@ class UserAttribute(models.Model):
                                       help_text='Indica la fecha de la última actualización del atributo',
                                       default=django.utils.timezone.now)
 
+    def get_user(self) -> User:
+        return self.id_user_fK
+
     def __str__(self):
         return f'{self.attribute_key} => {self.attribute_value}'
 
@@ -46,7 +49,7 @@ class Tracking(models.Model):
                                       help_text='Indica la fecha de la última actualización',
                                       default=django.utils.timezone.now)
     expiration_date = models.DateField('Fecha de vencimiento', help_text='Indica la fecha de vencimiento del paquete',
-                                       null=True)
+                                       null=False)
 
     def __str__(self):
         return f'{self.track_type}#{self.track_code}'
@@ -63,6 +66,12 @@ class TrackingDetail(models.Model):
     audit_time = models.DateTimeField('Fecha de actualización',
                                       help_text='Indica la fecha de la última actualización',
                                       default=django.utils.timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['id_tracking_fk', 'detail_head', 'detail_text', 'audit_time'],
+                                    name='unique tracking detail')
+        ]
 
     def __str__(self):
         return f'{self.detail_head}\n{self.detail_text}\n{self.audit_time}'

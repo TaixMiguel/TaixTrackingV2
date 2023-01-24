@@ -10,6 +10,7 @@ RUN apk add --no-cache python3 py3-pip tini; \
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN rm requirements.txt
+RUN playwright install
 
 COPY TaixTracking TaixTracking
 COPY tracking tracking
