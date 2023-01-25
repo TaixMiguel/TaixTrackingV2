@@ -1,20 +1,17 @@
-FROM alpine:latest
+FROM ubuntu:latest
 
 WORKDIR /taixTracking
 
-RUN apk add --no-cache python3 py3-pip tini; \
-    pip install --upgrade pip setuptools-scm; \
-    pip install pytz --upgrade; \
-    pip install tzdata --upgrade;
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip tini
+RUN pip3 install tzdata --upgrade
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-RUN rm requirements.txt
+COPY . .
+RUN pip3 install -r requirements.txt
 RUN playwright install
+RUN playwright install-deps
 
-COPY TaixTracking TaixTracking
-COPY tracking tracking
-COPY manage.py manage.py
+RUN rm -r .github .gitignore Dockerfile LICENSE README.md requirements.txt
 
 EXPOSE 8000/tcp
 ENTRYPOINT [ "tini", "--" ]
