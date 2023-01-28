@@ -23,7 +23,6 @@ class ConfigAppMeta(type):
 class ConfigApp(metaclass=ConfigAppMeta):
 
     __configData: dict = {}
-    __sw_daemon_launch: bool = False
 
     def __init__(self) -> None:
         path_file: str
@@ -42,10 +41,16 @@ class ConfigApp(metaclass=ConfigAppMeta):
             quit()
 
     def is_daemon_launch(self) -> bool:
-        return self.__sw_daemon_launch
+        return self.get_value_boolean('application', 'sw_daemon_launch', False)
 
     def set_daemon_launch(self, daemon_launch: bool) -> None:
-        self.__sw_daemon_launch = daemon_launch
+        self.__configData['application']['sw_daemon_launch'] = daemon_launch
+
+    def is_telegram_launch(self) -> bool:
+        return self.get_value_boolean('application', 'sw_telegram_launch', False)
+
+    def set_telegram_launch(self, telegram_launch: bool) -> None:
+        self.__configData['application']['sw_telegram_launch'] = telegram_launch
 
     def get_value(self, first_element: str, second_element: str, default='') -> str:
         try:
@@ -55,6 +60,13 @@ class ConfigApp(metaclass=ConfigAppMeta):
             return default
 
     def get_value_integer(self, first_element: str, second_element: str, default=0) -> int:
+        try:
+            return self.__configData[first_element][second_element]
+        except KeyError:
+            logger.info(f'No se encuentra el elemento de configuración "{first_element}=>{second_element}"')
+            return default
+
+    def get_value_boolean(self, first_element: str, second_element: str, default=False) -> bool:
         try:
             return self.__configData[first_element][second_element]
         except KeyError:

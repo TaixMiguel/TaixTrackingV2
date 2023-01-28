@@ -75,3 +75,10 @@ class TrackingDetail(models.Model):
 
     def __str__(self):
         return f'{self.detail_head}\n{self.detail_text}\n{self.audit_time}'
+
+    def pretty(self) -> str:
+        return f'*✨ Situación de tu pedido:✨*\n' \
+               f'*📦 Tracking:* {self.id_tracking_fk.track_code}\n' \
+               f'*📪 Compañía:* {self.id_tracking_fk.track_type}\n' \
+               f'*📝 Último estado:* {self.detail_text}\n' \
+               f'{self.audit_time.strftime("%d/%m/%Y %H:%M:%S")}'
