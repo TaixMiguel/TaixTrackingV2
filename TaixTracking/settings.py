@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import dj_database_url
 import os
 
+from TaixTracking.configApp import ConfigApp
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,6 +29,43 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'n-r1*(0@zn*f=*q9t_e2pv4d6+reb_
 DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
 
 ALLOWED_HOSTS = ['*']
+
+level_log = ConfigApp().get_value('log', 'level', 'INFO')
+path_log = ConfigApp().get_value('log', 'filepath', os.path.join(BASE_DIR, 'taixTracking.log'))
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'root': {'level': level_log, 'handlers': ['file']},
+    'handlers': {
+        'file': {
+            'level': level_log,
+            'class': 'logging.FileHandler',
+            'filename': path_log,
+            'formatter': 'app',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': level_log,
+            'propagate': True
+        },
+    },
+    'formatters': {
+        'app': {
+            'format': (
+                u'%(asctime)s [%(levelname)-8s] '
+                '(%(module)s.%(funcName)s) %(message)s'
+            ),
+            'datefmt': '%Y/%m/%d %H:%M:%S',
+        },
+    },
+}
+
+if DEBUG:
+    LOGGING['root']['handlers'] = ['file', 'console']
+    LOGGING['handlers']['console'] = {'level': 'DEBUG', 'class': 'logging.StreamHandler', 'formatter': 'console'}
+    LOGGING['formatters']['console'] = {'format': u'[%(levelname)-8s] (%(module)s.%(funcName)s) %(message)s'}
 
 
 # Application definition
