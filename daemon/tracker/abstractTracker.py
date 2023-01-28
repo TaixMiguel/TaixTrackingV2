@@ -32,9 +32,10 @@ class AbstractTracker(ABC):
 
     def add_new_detail(self) -> TrackingDetail:
         from django.db import IntegrityError
+        from communication.telegram import Telegram
         try:
             detail: TrackingDetail = self._save_new_detail()
-            # TODO: avisar al usuario del nuevo detalle
+            Telegram().send_message_to_tracking(self._get_tracking(), detail.pretty())
         except IntegrityError as e:
             logging.info(f'Se ha tratado de insertar dos veces una misma situación asociada al tracking '
                          f'{self._get_tracking().__str__()}')

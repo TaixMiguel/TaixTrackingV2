@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tracking.apps.TrackingConfig',
     'daemon.apps.DaemonConfig',
+    'communication.apps.CommunicationConfig',
 ]
 
 MIDDLEWARE = [
