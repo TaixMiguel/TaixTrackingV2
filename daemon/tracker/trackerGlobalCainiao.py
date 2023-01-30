@@ -1,9 +1,13 @@
+import logging
 from datetime import datetime
 from bs4 import BeautifulSoup
 from bs4.element import PageElement
 
 from daemon.tracker import AbstractTracker
 from tracking.models import Tracking, TrackingDetail
+
+
+logger = logging.getLogger(__name__)
 
 
 class TrackerGlobalCainiao(AbstractTracker):
@@ -38,8 +42,16 @@ class TrackerGlobalCainiao(AbstractTracker):
 
     def is_new_detail(self) -> bool:
         last_detail = self._get_last_detail()
-        if (not last_detail) or ((last_detail[0].detail_head is not self._headDetail) or (last_detail[0].detail_text
-           is not self._textDetail) or (last_detail[0].audit_time != self._date_gmt)):
+        if not last_detail:
+            logger.debug(f'Se indica una situación nueva por no existir situaciones anteriores '
+                         f'{self._get_tracking().__str__()}')
+            return True
+        last_detail: TrackingDetail = last_detail[0]
+        if ((last_detail.detail_head != self._headDetail)
+                or (last_detail.detail_text != self._textDetail)
+                or (last_detail.audit_time != self._date_gmt)):
+            logger.debug(f'Se detecta que la situación no coincide con una de las situaciones anteriores '
+                         f'{self.__str__()}')
             return True
         return False
 
@@ -48,3 +60,6 @@ class TrackerGlobalCainiao(AbstractTracker):
                                                     detail_text=self._textDetail, audit_time=self._date_gmt)
         aux_detail.save()
         return aux_detail
+
+    def __str__(self):
+        return f'{self._get_tracking().__str__()}#{self._headDetail}#{self._textDetail}#{self._date_gmt}'

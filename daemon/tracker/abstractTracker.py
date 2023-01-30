@@ -57,3 +57,6 @@ class AbstractTracker(ABC):
 
     def _get_last_detail(self) -> TrackingDetail:
         return TrackingDetail.objects.filter(id_tracking_fk=self._get_tracking()).order_by('-audit_time')[:1]
+
+    def __str__(self):
+        return self._get_tracking().__str__()
