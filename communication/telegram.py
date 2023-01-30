@@ -25,16 +25,17 @@ def __get_user_language_code(update: Update) -> str:
 
 
 def __get_user(update: Update) -> User:
+    logger.debug(f'El usuario de Telegram "{__get_user_nick(update)}" se ha puesto en contacto conmigo')
     user_attribute: UserAttribute = UserAttribute.objects\
         .filter(attribute_key=kTaixTracking.User.Attribute.Telegram.USER_ID)\
         .filter(attribute_value=__get_user_id(update))
 
     if not user_attribute:
-        logger.info(f'El usuario de Telegram "{__get_user_nick(update)}" se ha puesto en contacto conmigo')
         update.message.reply_text('No atiendo peticiones de desconocidos')
 
         user_aux = User()
         user_aux.save()
+        logger.info(f'El usuario {__get_user_nick(update)} no existía y ha sido creado')
         UserAttribute(id_user_fK=user_aux, attribute_key=kTaixTracking.User.Attribute.Telegram.USER_ID,
                       attribute_value=__get_user_id(update)).save()
         UserAttribute(id_user_fK=user_aux, attribute_key=kTaixTracking.User.Attribute.Telegram.USER_NICK,
@@ -48,6 +49,8 @@ def __get_user(update: Update) -> User:
 def command_aliexpress(update: Update, context: CallbackContext) -> None:
     user: User = __get_user(update)
     track_order: str = context.args[0]
+    logger.debug(f'Petición aliexpress "{track_order}"')
+
     if not track_order and user.sw_allow:
         update.message.reply_text('No se ha indicado el código de seguimiento')
         return
@@ -81,6 +84,7 @@ class Telegram:
     def run(self) -> None:
         if not ConfigApp().is_telegram_launch():
             ConfigApp().set_telegram_launch(True)
+            logger.debug('Se inicia el servicio de Telegram')
             self.__set_commands()
             self.__updater.start_polling()
             self.__updater.idle()
