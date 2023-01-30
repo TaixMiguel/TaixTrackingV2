@@ -12,7 +12,8 @@ RUN playwright install
 RUN playwright install-deps
 
 RUN rm -r .github .gitignore Dockerfile LICENSE README.md requirements.txt
+RUN chmod 777 /taixTracking/entrypoint.sh
 
 EXPOSE 8000/tcp
 ENTRYPOINT [ "tini", "--" ]
-CMD python3 /taixTracking/manage.py migrate; python3 /taixTracking/manage.py runserver 0.0.0.0:8000
+CMD /taixTracking/entrypoint.sh
