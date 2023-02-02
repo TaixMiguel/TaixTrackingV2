@@ -1,13 +1,14 @@
 import logging
 
 import telegram
+from django.contrib.auth.models import User
 from django.db import IntegrityError
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 from TaixTracking import kTaixTracking
 from TaixTracking.configApp import ConfigApp
-from tracking.models import User, Tracking, UserAttribute
+from tracking.models import Tracking, UserAttribute
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +31,17 @@ def __get_user(update: Update) -> User:
         .filter(attribute_value=__get_user_id(update))
 
     if not user_attribute:
-        logger.info(f'El usuario de Telegram "{__get_user_nick(update)}" se ha puesto en contacto conmigo')
+        nickname: str = __get_user_nick(update)
+        logger.info(f'El usuario de Telegram "{nickname}" se ha puesto en contacto conmigo')
         update.message.reply_text('No atiendo peticiones de desconocidos')
 
-        user_aux = User()
+        user_aux: User = User.objects.create_user(username=nickname, password=nickname)
+        user_aux.is_active = False
         user_aux.save()
         UserAttribute(id_user_fK=user_aux, attribute_key=kTaixTracking.User.Attribute.Telegram.USER_ID,
                       attribute_value=__get_user_id(update)).save()
         UserAttribute(id_user_fK=user_aux, attribute_key=kTaixTracking.User.Attribute.Telegram.USER_NICK,
-                      attribute_value=__get_user_nick(update)).save()
+                      attribute_value=nickname).save()
         UserAttribute(id_user_fK=user_aux, attribute_key=kTaixTracking.User.Attribute.Telegram.USER_LANGUAGE,
                       attribute_value=__get_user_language_code(update)).save()
         return user_aux
@@ -48,7 +51,7 @@ def __get_user(update: Update) -> User:
 def command_aliexpress(update: Update, context: CallbackContext) -> None:
     user: User = __get_user(update)
     track_order: str = context.args[0]
-    if not track_order and user.sw_allow:
+    if not track_order and user.is_active:
         update.message.reply_text('No se ha indicado el código de seguimiento')
         return
 
@@ -60,11 +63,13 @@ def command_aliexpress(update: Update, context: CallbackContext) -> None:
     except IntegrityError as e:
         logger.info(f'Se ha intentado dar de alta nuevamente el track "{kTaixTracking.Tracking.Types.CAINIAO}#'
                     f'{track_order}"')
-        tracking = Tracking.objects.filter(track_type=kTaixTracking.Tracking.Types.CAINIAO)\
-                                   .filter(track_code=track_order)[0]
+        trackings = Tracking.objects.filter(track_type=kTaixTracking.Tracking.Types.CAINIAO)\
+                                    .filter(track_code=track_order)
+        if trackings:
+            tracking = trackings[0]
 
     # TODO: asociar el tracking al usuario
-    if user.sw_allow:
+    if user.is_active:
         update.message.reply_text('Es posible que tardes un rato en recibir una respuesta. Por favor, sé paciente.')
 
 
