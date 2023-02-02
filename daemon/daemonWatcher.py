@@ -6,6 +6,9 @@ from TaixTracking.configApp import ConfigApp
 from daemon.tracker import get_instance_tracker, AbstractTracker
 
 
+logger = logging.getLogger(__name__)
+
+
 def _delete_inactive_users(num_days: int) -> None:
     from django.contrib.auth.models import User
     from datetime import date, timedelta
@@ -13,7 +16,7 @@ def _delete_inactive_users(num_days: int) -> None:
     aux_date = date.today() - timedelta(days=num_days)
     users_to_remove = User.objects.filter(is_active=False, date_joined__lte=aux_date)
     if users_to_remove:
-        logging.info(f'{len(users_to_remove)} usuarios a eliminar a fecha {aux_date.strftime("%m/%d/%y")}')
+        logger.info(f'{len(users_to_remove)} usuarios a eliminar a fecha {aux_date.strftime("%m/%d/%y")}')
         users_to_remove.delete()
 
 
@@ -49,6 +52,7 @@ class DaemonWatcher:
     def __turn_on(self) -> None:
         self.turnOff = False
         ConfigApp().set_daemon_launch(True)
+        logger.debug('Se inicia el vigilante de demonios')
 
         _delete_inactive_users(ConfigApp().get_number_days_to_delete_user_inactive())
 
