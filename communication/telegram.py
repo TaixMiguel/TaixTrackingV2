@@ -107,7 +107,9 @@ class Telegram:
         self.__updater.dispatcher.add_handler(CommandHandler('aliexpress', command_aliexpress))
 
     def send_message_to_tracking(self, tracking: Tracking, msg: str) -> None:
-        self.send_message(tracking.id_creator_user_fK, msg)
+        users_tracking = TrackingUser.objects.filter(id_tracking_fk=tracking)
+        for user_tracking in users_tracking:
+            self.send_message(user_tracking.id_user_fK, msg)
 
     def send_message(self, user: User, msg: str, parse_mode=telegram.constants.PARSEMODE_MARKDOWN_V2) -> None:
         attribute_id: UserAttribute = UserAttribute.objects \
