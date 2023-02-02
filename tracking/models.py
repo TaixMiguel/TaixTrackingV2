@@ -1,20 +1,6 @@
 import django
+from django.contrib.auth.models import User
 from django.db import models
-
-
-class User(models.Model):
-
-    id_user = models.AutoField(primary_key=True)
-    sw_allow = models.BooleanField('Activo', help_text='Permite el uso de la aplicación al usuario',
-                                   default=False)
-    creation_time = models.DateTimeField('Fecha de creación', help_text='Indica la fecha de creación del usuario',
-                                         default=django.utils.timezone.now)
-    audit_time = models.DateTimeField('Fecha de actualización',
-                                      help_text='Indica la fecha de la última actualización del usuario',
-                                      default=django.utils.timezone.now)
-
-    def __str__(self):
-        return f'{self.id_user}'
 
 
 class UserAttribute(models.Model):
@@ -47,7 +33,12 @@ class Tracking(models.Model):
                                       help_text='Indica la fecha de la última actualización',
                                       default=django.utils.timezone.now)
     expiration_date = models.DateField('Fecha de vencimiento', help_text='Indica la fecha de vencimiento del paquete',
-                                       null=False)
+                                       null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['track_type', 'track_code'], name='unique tracking')
+        ]
 
     def __str__(self):
         return f'{self.track_type}#{self.track_code}'

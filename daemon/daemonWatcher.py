@@ -10,19 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 def _delete_inactive_users(num_days: int) -> None:
-    from tracking.models import User
+    from django.contrib.auth.models import User
     from datetime import date, timedelta
 
     aux_date = date.today() - timedelta(days=num_days)
-    users_to_remove = User.objects.filter(sw_allow=False, creation_time__lte=aux_date)
+    users_to_remove = User.objects.filter(is_active=False, date_joined__lte=aux_date)
     if users_to_remove:
         logger.info(f'{len(users_to_remove)} usuarios a eliminar a fecha {aux_date.strftime("%m/%d/%y")}')
         users_to_remove.delete()
 
 
 def _get_active_tracking() -> list:
-    from tracking.models import User, Tracking
-    active_users = User.objects.filter(sw_allow=True)
+    from django.contrib.auth.models import User
+    from tracking.models import Tracking
+    active_users = User.objects.filter(is_active=True)
     return Tracking.objects.filter(id_creator_user_fK__in=active_users)
 
 

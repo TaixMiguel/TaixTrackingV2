@@ -1,17 +1,5 @@
 from django.contrib import admin
-from .models import User, UserAttribute, Tracking, TrackingDetail
-
-
-class UserAttributeInline(admin.TabularInline):
-    model = UserAttribute
-    extra = 0
-
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('id_user', 'sw_allow', 'creation_time')
-    list_filter = ('sw_allow', 'creation_time')
-    inlines = [UserAttributeInline]
+from .models import UserAttribute, Tracking, TrackingDetail
 
 
 @admin.register(UserAttribute)
