@@ -8,7 +8,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext
 
 from TaixTracking import kTaixTracking
 from TaixTracking.configApp import ConfigApp
-from tracking.models import Tracking, UserAttribute
+from tracking.models import Tracking, UserAttribute, TrackingUser
 
 logger = logging.getLogger(__name__)
 
@@ -59,21 +59,30 @@ def command_aliexpress(update: Update, context: CallbackContext) -> None:
         return
 
     tracking: Tracking = None
-    try:
-        tracking = Tracking(track_type=kTaixTracking.Tracking.Types.CAINIAO, track_code=track_order,
-                            id_creator_user_fK=user)
-        tracking.save()
-    except IntegrityError as e:
-        logger.info(f'Se ha intentado dar de alta nuevamente el track "{kTaixTracking.Tracking.Types.CAINIAO}#'
-                    f'{track_order}"')
-        trackings = Tracking.objects.filter(track_type=kTaixTracking.Tracking.Types.CAINIAO)\
-                                    .filter(track_code=track_order)
-        if trackings:
-            tracking = trackings[0]
+    trackings = Tracking.objects.filter(track_type=kTaixTracking.Tracking.Types.CAINIAO).filter(track_code=track_order)
+    if trackings:
+        tracking_repeat = True
+        tracking = trackings[0]
+    else:
+        try:
+            tracking = Tracking(track_type=kTaixTracking.Tracking.Types.CAINIAO, track_code=track_order,
+                                id_creator_user_fK=user)
+            tracking.save()
+        except IntegrityError as e:
+            logger.info(f'Se ha producido un error al dar de alta el track "{kTaixTracking.Tracking.Types.CAINIAO}#'
+                        f'{track_order}"')
+            logger.exception(e)
 
-    # TODO: asociar el tracking al usuario
-    if user.is_active:
-        update.message.reply_text('Es posible que tardes un rato en recibir una respuesta. Por favor, sé paciente.')
+    track_user: TrackingUser = TrackingUser.objects.filter(id_tracking_fk=tracking).filter(id_user_fK=user)
+    if not track_user:
+        TrackingUser(id_tracking_fk=tracking, id_user_fK=user).save()
+        if user.is_active:
+            update.message.reply_text('Es posible que tardes un rato en recibir una respuesta. Por favor, sé paciente.')
+    else:
+        logger.info(f'El usuario {user.username} ha intentado dar de alta nuevamente el track: '
+                    f'"{kTaixTracking.Tracking.Types.CAINIAO}#{track_order}"')
+        if user.is_active:
+            update.message.reply_text('El seguimiento que has introducido ya existe entre tus tracking.')
 
 
 class Telegram:
@@ -98,7 +107,9 @@ class Telegram:
         self.__updater.dispatcher.add_handler(CommandHandler('aliexpress', command_aliexpress))
 
     def send_message_to_tracking(self, tracking: Tracking, msg: str) -> None:
-        self.send_message(tracking.id_creator_user_fK, msg)
+        users_tracking = TrackingUser.objects.filter(id_tracking_fk=tracking)
+        for user_tracking in users_tracking:
+            self.send_message(user_tracking.id_user_fK, msg)
 
     def send_message(self, user: User, msg: str, parse_mode=telegram.constants.PARSEMODE_MARKDOWN_V2) -> None:
         attribute_id: UserAttribute = UserAttribute.objects \

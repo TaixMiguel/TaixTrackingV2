@@ -71,3 +71,15 @@ class TrackingDetail(models.Model):
                f'*📪 Compañía:* {self.id_tracking_fk.track_type}\n' \
                f'*📝 Último estado:* {self.detail_text}\n' \
                f'{self.audit_time.strftime("%d/%m/%Y %H:%M:%S")}'
+
+
+class TrackingUser(models.Model):
+
+    id_tracking_user = models.AutoField(primary_key=True)
+    id_tracking_fk = models.ForeignKey(Tracking, help_text='Identificador del tracking', on_delete=models.CASCADE)
+    id_user_fK = models.ForeignKey(User, help_text='Identificador del usuario', on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['id_tracking_fk', 'id_user_fK'], name='unique tracking-user')
+        ]
