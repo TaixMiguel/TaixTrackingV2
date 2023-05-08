@@ -2,4 +2,4 @@ beautifulsoup4==4.12.2
 django==4.2
 dj-database-url==2.0.0
 playwright==1.32.1
-python-telegram-bot==13.11  # last sync version
+python-telegram-bot==20.3  # last sync version
