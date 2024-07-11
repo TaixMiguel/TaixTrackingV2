@@ -1,5 +1,5 @@
 beautifulsoup4==4.12.3
-django==4.2.10
+django==4.2.14
 dj-database-url==2.2.0
 playwright==1.45.0
 python-telegram-bot==13.11  # last sync version
